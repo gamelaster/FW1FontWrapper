@@ -573,7 +573,7 @@ MIDL_INTERFACE("A0EA03A0-441D-49BE-9D2C-4AE27BB7A327") IFW1ColorRGBA : public IF
 	/// <param name="Red">The red component, in [0, 1].</param>
 	/// <param name="Green">The green component, in [0, 1].</param>
 	/// <param name="Blue">The blue component, in [0, 1].</param>
-	/// <param name="Alpha">The alphas component, in [0, 1].</param>
+	/// <param name="Alpha">The alpha component, in [0, 1].</param>
 	virtual void STDMETHODCALLTYPE SetColor(
 		__in FLOAT Red,
 		__in FLOAT Green,
@@ -813,7 +813,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	
 	/// <summary>Draw a DirectWrite text layout.</summary>
 	/// <remarks>Consult the DirectWrite documentation for details on how to construct a text-layout.<br/>
-	/// The pContext parameter can be NULL if and only if the flags FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
+	/// The pContext parameter can be NULL only if the FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pTextLayout">The text layout to draw.</param>
@@ -832,7 +832,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	
 	/// <summary>Draw a DirectWrite text layout.</summary>
 	/// <remarks>Consult the DirectWrite documentation for details on how to construct a text-layout.<br/>
-	/// The pContext parameter can be NULL if and only if the flags FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
+	/// The pContext parameter can be NULL only if the FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pTextLayout">The text layout to draw.</param>
@@ -841,7 +841,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="Color">The default color of the text, as 0xAaBbGgRr.</param>
 	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
-	/// <param name="Flags">See the FW1_TEXT_FLAG structure. The alignment and word-wrapping flags have no meaning when drawing a preconstructed text layout.</param>
+	/// <param name="Flags">See FW1_TEXT_FLAG. The alignment and word-wrapping flags have no meaning when drawing a preconstructed text layout.</param>
 	virtual void STDMETHODCALLTYPE DrawTextLayout(
 		__in ID3D11DeviceContext *pContext,
 		__in IDWriteTextLayout *pTextLayout,
@@ -854,15 +854,15 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	) = 0;
 	
 	/// <summary>Draw a string.</summary>
-	/// <remarks>The pContext parameter can be NULL if and only if the flags FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
+	/// <remarks>The pContext parameter can be NULL only if the FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pszString">The NULL-terminated string to draw.</param>
 	/// <param name="FontSize">The size of the font.</param>
-	/// <param name="OriginX">The X origin of the text.</param>
-	/// <param name="OriginY">The Y origin of the text .</param>
+	/// <param name="X">The X origin of the text.</param>
+	/// <param name="Y">The Y origin of the text .</param>
 	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
-	/// <param name="Flags">See the FW1_TEXT_FLAG structure.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawString(
 		__in ID3D11DeviceContext *pContext,
 		__in const WCHAR *pszString,
@@ -874,16 +874,16 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	) = 0;
 	
 	/// <summary>Draw a string.</summary>
-	/// <remarks>The pContext parameter can be NULL if and only if the flags FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
+	/// <remarks>The pContext parameter can be NULL only if the FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pszString">The NULL-terminated string to draw.</param>
 	/// <param name="pszFontFamily">The font family to use, such as Arial or Courier New.</param>
 	/// <param name="FontSize">The size of the font.</param>
-	/// <param name="OriginX">The X origin of the text.</param>
-	/// <param name="OriginY">The Y origin of the text .</param>
+	/// <param name="X">The X origin of the text.</param>
+	/// <param name="Y">The Y origin of the text .</param>
 	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
-	/// <param name="Flags">See the FW1_TEXT_FLAG structure.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawString(
 		__in ID3D11DeviceContext *pContext,
 		__in const WCHAR *pszString,
@@ -896,7 +896,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	) = 0;
 	
 	/// <summary>Draw a string.</summary>
-	/// <remarks>The pContext parameter can be NULL if and only if the flags FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
+	/// <remarks>The pContext parameter can be NULL only if the FW1_NOFLUSH and either the FW1_ANALYZEONLY or the FW1_CACHEONLY flags are specified.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pszString">The NULL-terminated string to draw.</param>
@@ -906,7 +906,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
 	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
-	/// <param name="Flags">See the FW1_TEXT_FLAG structure.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawString(
 		__in ID3D11DeviceContext *pContext,
 		__in const WCHAR *pszString,
@@ -926,7 +926,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="pGeometry">The geometry to draw.</param>
 	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
-	/// <param name="Flags">See the FW1_TEXT_FLAG structure.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawGeometry(
 		__in ID3D11DeviceContext *pContext,
 		__in IFW1TextGeometry *pGeometry,
