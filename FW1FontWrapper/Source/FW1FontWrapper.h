@@ -657,7 +657,7 @@ MIDL_INTERFACE("51E05736-6AFF-44A8-9745-77605C99E8F2") IFW1TextRenderer : public
 		__out IFW1GlyphProvider **ppGlyphProvider
 	) = 0;
 	
-	/// <summary>Get the vertices in the geometry, sorted by glyph sheet.</summary>
+	/// <summary>Convert a text layout to vertices.</summary>
 	/// <remarks>This method internally calls the IDWriteTextLayout::Draw method, and handles callbacks to convert the formatted text into vertices, which will be stored in the internal IFW1TextGeometry object.
 	/// Use IFW1TextRenderer::GetTextGeometry to get the geometry after a DrawTextLayout call has successfully completed.<br/>
 	/// This method is not thread-safe.</remarks>
