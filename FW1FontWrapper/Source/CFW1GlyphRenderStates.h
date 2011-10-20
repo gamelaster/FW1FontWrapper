@@ -38,17 +38,14 @@ class CFW1GlyphRenderStates : public CFW1Object<IFW1GlyphRenderStates> {
 		);
 	
 	// Internal types
-	protected:
+	private:
 		struct ShaderConstants {
 			FLOAT					TransformMatrix[16];
 			FLOAT					ClipRect[4];
 		};
 	
 	// Internal functions
-	protected:
-		CFW1GlyphRenderStates(const CFW1GlyphRenderStates&);
-		CFW1GlyphRenderStates& operator=(const CFW1GlyphRenderStates&);
-		
+	private:
 		virtual ~CFW1GlyphRenderStates();
 		
 		HRESULT createQuadShaders();
@@ -58,7 +55,7 @@ class CFW1GlyphRenderStates : public CFW1Object<IFW1GlyphRenderStates> {
 		HRESULT createRenderStates(bool anisotropicFiltering);
 	
 	// Internal data
-	protected:
+	private:
 		std::wstring				m_lastError;
 		
 		pD3DCompile					m_pfnD3DCompile;

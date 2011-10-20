@@ -9,7 +9,7 @@
 namespace FW1FontWrapper {
 
 
-// Draws glyph-vertices from CPU memory using a dynamic vertex buffer
+// Draws glyph-vertices from system memory using a dynamic vertex buffer
 class CFW1GlyphVertexDrawer : public CFW1Object<IFW1GlyphVertexDrawer> {
 	public:
 		// IUnknown
@@ -33,7 +33,7 @@ class CFW1GlyphVertexDrawer : public CFW1Object<IFW1GlyphVertexDrawer> {
 		HRESULT initVertexDrawer(IFW1Factory *pFW1Factory, ID3D11Device *pDevice, UINT vertexBufferSize);
 	
 	// Internal types
-	protected:
+	private:
 		struct QuadVertex {
 			FLOAT						positionX;
 			FLOAT						positionY;
@@ -43,10 +43,7 @@ class CFW1GlyphVertexDrawer : public CFW1Object<IFW1GlyphVertexDrawer> {
 		};
 	
 	// Internal functions
-	protected:
-		CFW1GlyphVertexDrawer(const CFW1GlyphVertexDrawer&);
-		CFW1GlyphVertexDrawer& operator=(const CFW1GlyphVertexDrawer&);
-		
+	private:
 		virtual ~CFW1GlyphVertexDrawer();
 		
 		HRESULT createBuffers();
@@ -65,7 +62,7 @@ class CFW1GlyphVertexDrawer : public CFW1Object<IFW1GlyphVertexDrawer> {
 		);
 	
 	// Internal data
-	protected:
+	private:
 		std::wstring					m_lastError;
 		
 		ID3D11Device					*m_pDevice;

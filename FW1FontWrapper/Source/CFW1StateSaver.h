@@ -18,13 +18,8 @@ class CFW1StateSaver {
 		HRESULT restoreSavedState();
 		void releaseSavedState();
 	
-	// Internal functions
-	protected:
-		CFW1StateSaver(const CFW1StateSaver&);
-		CFW1StateSaver& operator=(const CFW1StateSaver&);
-	
 	// Internal data
-	protected:
+	private:
 		bool						m_savedState;
 		D3D_FEATURE_LEVEL			m_featureLevel;
 		ID3D11DeviceContext			*m_pContext;
@@ -62,6 +57,10 @@ class CFW1StateSaver {
 		ID3D11Buffer				*m_pIndexBuffer;
 		DXGI_FORMAT					m_indexFormat;
 		UINT						m_indexOffset;
+	
+	private:
+		CFW1StateSaver(const CFW1StateSaver&);
+		CFW1StateSaver& operator=(const CFW1StateSaver&);
 };
 
 

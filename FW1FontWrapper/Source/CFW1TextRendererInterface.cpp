@@ -123,9 +123,10 @@ HRESULT CFW1TextRenderer::DrawGlyphRun(
 	else {
 		// Glyph vertex
 		FW1_GLYPHVERTEX glyphVertex;
-		glyphVertex.PositionX = baselineOriginX;
-		glyphVertex.PositionY = baselineOriginY;
+		glyphVertex.PositionY = floor(baselineOriginY + 0.5f);
 		glyphVertex.GlyphColor = m_currentColor;
+		
+		float positionX = floor(baselineOriginX + 0.5f);
 		
 		// Optional drawing effect
 		if(clientDrawingEffect != NULL) {
@@ -147,12 +148,13 @@ HRESULT CFW1TextRenderer::DrawGlyphRun(
 			);
 			
 			if((glyphRun->bidiLevel & 0x1) != 0)
-				glyphVertex.PositionX -= glyphRun->glyphAdvances[i];
+				positionX -= glyphRun->glyphAdvances[i];
 			
+			glyphVertex.PositionX = floor(positionX + 0.5f);
 			m_pTextGeometry->AddGlyphVertex(&glyphVertex);
 			
 			if((glyphRun->bidiLevel & 0x1) == 0)
-				glyphVertex.PositionX += glyphRun->glyphAdvances[i];
+				positionX += glyphRun->glyphAdvances[i];
 		}
 	}
 	

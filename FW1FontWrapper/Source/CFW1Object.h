@@ -64,9 +64,6 @@ class CFW1Object : public IBase {
 		{
 		}
 		
-		CFW1Object(const CFW1Object&);
-		CFW1Object& operator=(const CFW1Object&);
-		
 		virtual ~CFW1Object() {
 			if(m_pFW1Factory != NULL)
 				m_pFW1Factory->Release();
@@ -84,9 +81,14 @@ class CFW1Object : public IBase {
 	
 	// Internal data
 	protected:
-		ULONG						m_cRefCount;
-		
 		IFW1Factory					*m_pFW1Factory;
+	
+	private:
+		ULONG						m_cRefCount;
+	
+	private:
+		CFW1Object(const CFW1Object&);
+		CFW1Object& operator=(const CFW1Object&);
 };
 
 

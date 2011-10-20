@@ -46,7 +46,7 @@ class CFW1GlyphProvider : public CFW1Object<IFW1GlyphProvider> {
 		);
 	
 	// Internal types
-	protected:
+	private:
 		struct GlyphMap {
 			FLOAT							fontSize;
 			UINT							fontFlags;
@@ -69,10 +69,7 @@ class CFW1GlyphProvider : public CFW1Object<IFW1GlyphProvider> {
 		}
 	
 	// Internal functions
-	protected:
-		CFW1GlyphProvider(const CFW1GlyphProvider&);
-		CFW1GlyphProvider& operator=(const CFW1GlyphProvider&);
-		
+	private:
 		virtual ~CFW1GlyphProvider();
 		
 		UINT getFontIndexFromFontFace(IDWriteFontFace *pFontFace);
@@ -81,7 +78,7 @@ class CFW1GlyphProvider : public CFW1Object<IFW1GlyphProvider> {
 		UINT insertNewGlyph(GlyphMap *glyphMap, UINT16 glyphIndex, IDWriteFontFace *pFontFace);
 	
 	// Internal data
-	protected:
+	private:
 		IFW1GlyphAtlas						*m_pGlyphAtlas;
 		
 		IDWriteFactory						*m_pDWriteFactory;

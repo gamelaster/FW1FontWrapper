@@ -30,14 +30,11 @@ class CFW1ColorRGBA : public CFW1Object<IFW1ColorRGBA> {
 		HRESULT initColor(IFW1Factory *pFW1Factory, UINT32 initialColor32);
 	
 	// Internal functions
-	protected:
-		CFW1ColorRGBA(const CFW1ColorRGBA&);
-		CFW1ColorRGBA& operator=(const CFW1ColorRGBA&);
-		
+	private:
 		virtual ~CFW1ColorRGBA();
 	
 	// Internal data
-	protected:
+	private:
 		UINT32						m_color32;
 };
 

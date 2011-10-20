@@ -50,7 +50,7 @@ class CFW1GlyphSheet : public CFW1Object<IFW1GlyphSheet> {
 		);
 	
 	// Internal types
-	protected:
+	private:
 		struct RectUI {
 			UINT					left;
 			UINT					top;
@@ -66,7 +66,11 @@ class CFW1GlyphSheet : public CFW1Object<IFW1GlyphSheet> {
 				UINT findMin(UINT width, UINT *outMin);
 				void update(UINT startX, UINT width, UINT newHeight);
 			
-			protected:
+			private:
+				HeightRange();
+				HeightRange(const HeightRange&);
+				HeightRange& operator=(const HeightRange&);
+				
 				UINT findMax(UINT startX, UINT width);
 				
 				UINT				*m_heights;
@@ -82,7 +86,7 @@ class CFW1GlyphSheet : public CFW1Object<IFW1GlyphSheet> {
 					LeaveCriticalSection(m_pCriticalSection);
 				}
 			
-			protected:
+			private:
 				CriticalSectionLock();
 				CriticalSectionLock(const CriticalSectionLock&);
 				CriticalSectionLock& operator=(const CriticalSectionLock&);
@@ -91,16 +95,13 @@ class CFW1GlyphSheet : public CFW1Object<IFW1GlyphSheet> {
 		};
 	
 	// Internal functions
-	protected:
-		CFW1GlyphSheet(const CFW1GlyphSheet&);
-		CFW1GlyphSheet& operator=(const CFW1GlyphSheet&);
-		
+	private:
 		virtual ~CFW1GlyphSheet();
 		
 		HRESULT createDeviceResources();
 	
 	// Internal data
-	protected:
+	private:
 		std::wstring				m_lastError;
 		
 		UINT						m_sheetWidth;

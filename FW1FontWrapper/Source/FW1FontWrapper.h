@@ -1,6 +1,6 @@
 // FW1FontWrapper.h
 
-// v1.0, March 2011
+// v1.1, October 2011
 // Written by Erik Rufelt
 
 #ifndef IncludeGuard__FW1_FW1FontWrapper_h
@@ -12,7 +12,7 @@
 
 /// <summary>The current FW1 version.</summary>
 /// <remarks>This constant should be used when calling FW1CreateFactory to make sure the library version matches the headers.</remarks>
-#define FW1_VERSION 0x100f
+#define FW1_VERSION 0x110f
 
 #define FW1_DLL_W L"FW1FontWrapper.dll"
 #define FW1_DLL_A "FW1FontWrapper.dll"
@@ -235,7 +235,7 @@ struct FW1_DWRITEFONTPARAMS {
 	/// <summary>The font stretch. See DirectWrite documentation.</summary>
 	DWRITE_FONT_STRETCH FontStretch;
 	
-	/// <summary>The locale. NULL will default to L"en-us".</summary>
+	/// <summary>The locale. NULL for default.</summary>
 	LPCWSTR pszLocale;
 };
 
@@ -710,7 +710,7 @@ MIDL_INTERFACE("906928B6-79D8-4b42-8CE4-DC7D7046F206") IFW1GlyphRenderStates : p
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The context to use to update the constant buffer.</param>
 	/// <param name="pClipRect">A pointer to a rectangle to clip drawn glyphs to.</param>
-	/// <param name="pTransformMatrix">An arary of 16 floats, representing a matrix which all glyph vertices will be multiplied with, in the geometry or vertex shader.</param>
+	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which all glyph vertices will be multiplied with, in the geometry or vertex shader.</param>
 	virtual void STDMETHODCALLTYPE UpdateShaderConstants(
 		__in ID3D11DeviceContext *pContext,
 		__in const FW1_RECTF *pClipRect,
@@ -902,10 +902,10 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="pszString">The NULL-terminated string to draw.</param>
 	/// <param name="pszFontFamily">The font family to use, such as Arial or Courier New.</param>
 	/// <param name="FontSize">The size of the font.</param>
-	/// <param name="pLayoutRect">A rectangle to format the text in.</param>
+	/// <param name="pLayoutRect">A pointer to a rectangle to format the text in.</param>
 	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
-	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
-	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
+	/// <param name="pClipRect">A pointer to a rectangle to clip the text to, or NULL to not clip.</param>
+	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by, or NULL to draw in screen-space.</param>
 	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawString(
 		__in ID3D11DeviceContext *pContext,
@@ -919,13 +919,29 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 		__in UINT Flags
 	) = 0;
 	
+	/// <summary>Measure a string.</summary>
+	/// <remarks>This function uses the IDWriteTextLayout::GetOverhangMetrics to obtain the size of the string.</remarks>
+	/// <returns>The smallest rectangle that completely contains the string if drawn with DrawString and the same parameters as used with MeasureString.</returns>
+	/// <param name="pszString">The NULL-terminated string to measure.</param>
+	/// <param name="pszFontFamily">The font family to use, such as Arial or Courier New.</param>
+	/// <param name="FontSize">The size of the font.</param>
+	/// <param name="pLayoutRect">A pointer to a rectangle to format the text in.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
+	virtual FW1_RECTF STDMETHODCALLTYPE MeasureString(
+		__in const WCHAR *pszString,
+		__in const WCHAR *pszFontFamily,
+		__in FLOAT FontSize,
+		__in const FW1_RECTF *pLayoutRect,
+		__in UINT Flags
+	) = 0;
+	
 	/// <summary>Draw geometry.</summary>
 	/// <remarks></remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pGeometry">The geometry to draw.</param>
-	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
-	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
+	/// <param name="pClipRect">A pointer to a rectangle to clip the text to, or NULL to not clip.</param>
+	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by, or NULL to draw in screen-space.</param>
 	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawGeometry(
 		__in ID3D11DeviceContext *pContext,
@@ -937,7 +953,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	
 	/// <summary>Flush any new glyphs to GPU resources.</summary>
 	/// <remarks>This method calls IFW1GlyphAtlas::Flush to flush any newly cached glyphs.
-	/// This method is only needed if drawing text using the FW1_NOFLUSH flag and delaying flushing data to the device. See IFW1GlyphAtlas::Flush</remarks>
+	/// This method is only needed if drawing text using the FW1_NOFLUSH flag and delaying flushing data to the device. See IFW1GlyphAtlas::Flush.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to use to update device resources.</param>
 	virtual void STDMETHODCALLTYPE Flush(
@@ -1116,7 +1132,7 @@ MIDL_INTERFACE("8004DB2B-B5F9-4420-A6A2-E17E15E4C336") IFW1Factory : public IUnk
 		/// <param name="GlyphSheetHeight">Height of the sheet texture.</param>
 		/// <param name="HardwareCoordBuffer">If TRUE, create a D3D11 buffer with glyph coordinates, for use with the geometry shader.</param>
 		/// <param name="AllowOversizedGlyph">If FALSE, glyphs that are larger than the sheet texture will be rejected instead of partially inserted.</param>
-		/// <param name="MaxGlyphCountPerSheet">The maximum number of glyphs in the sheet.</param>
+		/// <param name="MaxGlyphCount">The maximum number of glyphs in the sheet.</param>
 		/// <param name="MipLevels">The number of mip levels for the texture.</param>
 		/// <param name="ppGlyphSheet">Address of a pointer to an IFW1GlyphSheet.</param>
 		virtual HRESULT STDMETHODCALLTYPE CreateGlyphSheet(
@@ -1125,7 +1141,7 @@ MIDL_INTERFACE("8004DB2B-B5F9-4420-A6A2-E17E15E4C336") IFW1Factory : public IUnk
 			__in UINT GlyphSheetHeight,
 			__in BOOL HardwareCoordBuffer,
 			__in BOOL AllowOversizedGlyph,
-			__in UINT MaxGlyphCountPerSheet,
+			__in UINT MaxGlyphCount,
 			__in UINT MipLevels,
 			__out IFW1GlyphSheet **ppGlyphSheet
 		) = 0;

@@ -243,8 +243,8 @@ UINT CFW1GlyphVertexDrawer::drawGlyphsAsQuads(
 				
 				for(UINT i=0; i < drawCount/4; ++i) {
 					FW1_GLYPHVERTEX glyphVertex = vertexData->pVertices[currentVertex + i];
-					glyphVertex.PositionX = floor(glyphVertex.PositionX);
-					glyphVertex.PositionY = floor(glyphVertex.PositionY);
+					glyphVertex.PositionX = glyphVertex.PositionX;
+					glyphVertex.PositionY = glyphVertex.PositionY;
 					
 					const FW1_GLYPHCOORDS &glyphCoords = sheetGlyphCoords[glyphVertex.GlyphIndex];
 					

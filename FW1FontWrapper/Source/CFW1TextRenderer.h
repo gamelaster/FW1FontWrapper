@@ -38,10 +38,7 @@ class CFW1TextRenderer : public CFW1Object<IFW1TextRenderer> {
 		);
 	
 	// Internal functions
-	protected:
-		CFW1TextRenderer(const CFW1TextRenderer&);
-		CFW1TextRenderer& operator=(const CFW1TextRenderer&);
-		
+	private:
 		virtual ~CFW1TextRenderer();
 		
 		// IDWritePixelSnapping interface (called via proxy)
@@ -84,7 +81,7 @@ class CFW1TextRenderer : public CFW1Object<IFW1TextRenderer> {
 		);
 	
 	// Internal data
-	protected:
+	private:
 		IFW1GlyphProvider			*m_pGlyphProvider;
 		IFW1TextGeometry			*m_pTextGeometry;
 		
@@ -97,7 +94,7 @@ class CFW1TextRenderer : public CFW1Object<IFW1TextRenderer> {
 	
 	
 	// Proxy for IDWriteTextRenderer interface
-	protected:
+	private:
 		class CDWriteTextRendererProxy : public IDWriteTextRenderer {
 			public:
 				virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) {
@@ -136,11 +133,11 @@ class CFW1TextRenderer : public CFW1Object<IFW1TextRenderer> {
 			public:
 				CDWriteTextRendererProxy(CFW1TextRenderer *realObject) : m_realObject(realObject) {}
 			
-			protected:
+			private:
 				CDWriteTextRendererProxy(const CDWriteTextRendererProxy&);
 				CDWriteTextRendererProxy& operator=(const CDWriteTextRendererProxy&);
 			
-			protected:
+			private:
 				CFW1TextRenderer	*m_realObject;
 		} *m_pDWriteTextRendererProxy;
 };

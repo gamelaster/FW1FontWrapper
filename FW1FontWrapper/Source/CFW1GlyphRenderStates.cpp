@@ -127,7 +127,9 @@ HRESULT CFW1GlyphRenderStates::initRenderResources(
 	if(SUCCEEDED(hResult))
 		hResult = S_OK;
 	
+#ifdef FW1_DELAYLOAD_D3DCOMPILER_XX_DLL
 	FreeLibrary(hD3DCompiler);
+#endif
 	
 	return hResult;
 }
@@ -334,7 +336,7 @@ HRESULT CFW1GlyphRenderStates::createGlyphShaders() {
 	"\r\n"
 	"[maxvertexcount(4)]\r\n"
 	"void GS(point GSIn Input[1], inout TriangleStream<GSOut> TriStream) {\r\n"
-	"	const float2 basePosition = floor(Input[0].PositionIndex).xy;\r\n"
+	"	const float2 basePosition = Input[0].PositionIndex.xy;\r\n"
 	"	const uint glyphIndex = asuint(Input[0].PositionIndex.z);\r\n"
 	"	\r\n"
 	"	float4 texCoords = tex0.Load(uint2(glyphIndex*2, 0));\r\n"
@@ -388,7 +390,7 @@ HRESULT CFW1GlyphRenderStates::createGlyphShaders() {
 	"\r\n"
 	"[maxvertexcount(4)]\r\n"
 	"void GS(point GSIn Input[1], inout TriangleStream<GSOut> TriStream) {\r\n"
-	"	const float2 basePosition = floor(Input[0].PositionIndex).xy;\r\n"
+	"	const float2 basePosition = Input[0].PositionIndex.xy;\r\n"
 	"	const uint glyphIndex = asuint(Input[0].PositionIndex.z);\r\n"
 	"	\r\n"
 	"	float4 texCoords = tex0.Load(uint2(glyphIndex*2, 0));\r\n"
@@ -657,7 +659,7 @@ HRESULT CFW1GlyphRenderStates::createPixelShaders() {
 		NULL,
 		"PS",
 		ps_profile,
-		D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS,
+		D3DCOMPILE_OPTIMIZATION_LEVEL3,
 		0,
 		&pPSCode,
 		NULL
@@ -685,7 +687,7 @@ HRESULT CFW1GlyphRenderStates::createPixelShaders() {
 				NULL,
 				"PS",
 				ps_profile,
-				D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS,
+				D3DCOMPILE_OPTIMIZATION_LEVEL3,
 				0,
 				&pPSClipCode,
 				NULL

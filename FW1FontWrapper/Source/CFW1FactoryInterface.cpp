@@ -469,7 +469,7 @@ HRESULT STDMETHODCALLTYPE CFW1Factory::CreateGlyphSheet(
 	UINT GlyphSheetHeight,
 	BOOL HardwareCoordBuffer,
 	BOOL AllowOversizedGlyph,
-	UINT MaxGlyphCountPerSheet,
+	UINT MaxGlyphCount,
 	UINT MipLevels,
 	IFW1GlyphSheet **ppGlyphSheet
 ) {
@@ -484,7 +484,7 @@ HRESULT STDMETHODCALLTYPE CFW1Factory::CreateGlyphSheet(
 		GlyphSheetHeight,
 		(HardwareCoordBuffer != FALSE),
 		(AllowOversizedGlyph != FALSE),
-		MaxGlyphCountPerSheet,
+		MaxGlyphCount,
 		MipLevels
 	);
 	if(FAILED(hResult)) {

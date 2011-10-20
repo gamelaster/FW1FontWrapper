@@ -231,64 +231,57 @@ void STDMETHODCALLTYPE CFW1FontWrapper::DrawString(
 	const WCHAR *pszString,
 	const WCHAR *pszFontFamily,
 	FLOAT FontSize,
-	const FW1_RECTF *pFormatRect,
+	const FW1_RECTF *pLayoutRect,
 	UINT32 Color,
 	const FW1_RECTF *pClipRect,
 	const FLOAT *pTransformMatrix,
 	UINT Flags
 ) {
-	if(m_defaultTextInited) {
-		UINT32 stringLength = 0;
-		while(pszString[stringLength] != 0)
-			++stringLength;
+	IDWriteTextLayout *pTextLayout = createTextLayout(pszString, pszFontFamily, FontSize, pLayoutRect, Flags);
+	if(pTextLayout != NULL) {
+		// Draw
+		DrawTextLayout(
+			pContext,
+			pTextLayout,
+			pLayoutRect->Left,
+			pLayoutRect->Top,
+			Color,
+			pClipRect,
+			pTransformMatrix,
+			Flags
+		);
 		
-		if(stringLength > 0) {
-			// Create DWrite text layout for the string
-			IDWriteTextLayout *pTextLayout;
-			HRESULT hResult = m_pDWriteFactory->CreateTextLayout(
-				pszString,
-				stringLength,
-				m_pDefaultTextFormat,
-				pFormatRect->Right - pFormatRect->Left,
-				pFormatRect->Bottom - pFormatRect->Top,
-				&pTextLayout
-			);
-			if(SUCCEEDED(hResult)) {
-				// Layout settings
-				DWRITE_TEXT_RANGE allText = {0, stringLength};
-				pTextLayout->SetFontSize(FontSize, allText);
-				
-				if(pszFontFamily != NULL)
-					pTextLayout->SetFontFamilyName(pszFontFamily, allText);
-				
-				if((Flags & FW1_NOWORDWRAP) != 0)
-					pTextLayout->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-				
-				if(Flags & FW1_RIGHT)
-					pTextLayout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-				else if(Flags & FW1_CENTER)
-					pTextLayout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-				if(Flags & FW1_BOTTOM)
-					pTextLayout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_FAR);
-				else if(Flags & FW1_VCENTER)
-					pTextLayout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-				
-				// Draw
-				DrawTextLayout(
-					pContext,
-					pTextLayout,
-					pFormatRect->Left,
-					pFormatRect->Top,
-					Color,
-					pClipRect,
-					pTransformMatrix,
-					Flags
-				);
-				
-				pTextLayout->Release();
-			}
-		}
+		pTextLayout->Release();
 	}
+}
+
+
+// Measure text
+FW1_RECTF STDMETHODCALLTYPE CFW1FontWrapper::MeasureString(
+	const WCHAR *pszString,
+	const WCHAR *pszFontFamily,
+	FLOAT FontSize,
+	const FW1_RECTF *pLayoutRect,
+	UINT Flags
+) {
+	FW1_RECTF stringRect = {pLayoutRect->Left, pLayoutRect->Top, pLayoutRect->Left, pLayoutRect->Top};
+	
+	IDWriteTextLayout *pTextLayout = createTextLayout(pszString, pszFontFamily, FontSize, pLayoutRect, Flags);
+	if(pTextLayout != NULL) {
+		// Get measurements
+		DWRITE_OVERHANG_METRICS overhangMetrics;
+		HRESULT hResult = pTextLayout->GetOverhangMetrics(&overhangMetrics);
+		if(SUCCEEDED(hResult)) {
+			stringRect.Left = floor(pLayoutRect->Left - overhangMetrics.left);
+			stringRect.Top = floor(pLayoutRect->Top - overhangMetrics.top);
+			stringRect.Right = ceil(pLayoutRect->Left + overhangMetrics.right);
+			stringRect.Bottom = ceil(pLayoutRect->Top + overhangMetrics.bottom);
+		}
+		
+		pTextLayout->Release();
+	}
+	
+	return stringRect;
 }
 
 
@@ -301,7 +294,7 @@ void STDMETHODCALLTYPE CFW1FontWrapper::DrawGeometry(
 	UINT Flags
 ) {
 	FW1_VERTEXDATA vertexData = pGeometry->GetGlyphVerticesTemp();
-	if(vertexData.TotalVertexCount > 0) {
+	if(vertexData.TotalVertexCount > 0 || (Flags & FW1_RESTORESTATE) == 0) {
 		if(m_featureLevel < D3D_FEATURE_LEVEL_10_0 || m_pGlyphRenderStates->HasGeometryShader() == FALSE)
 			Flags |= FW1_NOGEOMETRYSHADER;
 		

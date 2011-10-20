@@ -68,10 +68,18 @@ class CFW1FontWrapper : public CFW1Object<IFW1FontWrapper> {
 			const WCHAR *pszString,
 			const WCHAR *pszFontFamily,
 			FLOAT FontSize,
-			const FW1_RECTF *pFormatRect,
+			const FW1_RECTF *pLayoutRect,
 			UINT32 Color,
 			const FW1_RECTF *pClipRect,
 			const FLOAT *pTransformMatrix,
+			UINT Flags
+		);
+		
+		virtual FW1_RECTF STDMETHODCALLTYPE MeasureString(
+			const WCHAR *pszString,
+			const WCHAR *pszFontFamily,
+			FLOAT FontSize,
+			const FW1_RECTF *pLayoutRect,
 			UINT Flags
 		);
 		
@@ -101,14 +109,19 @@ class CFW1FontWrapper : public CFW1Object<IFW1FontWrapper> {
 		);
 	
 	// Internal functions
-	protected:
-		CFW1FontWrapper(const CFW1FontWrapper&);
-		CFW1FontWrapper& operator=(const CFW1FontWrapper&);
-		
+	private:
 		virtual ~CFW1FontWrapper();
+		
+		IDWriteTextLayout* createTextLayout(
+			const WCHAR *pszString,
+			const WCHAR *pszFontFamily,
+			FLOAT fontSize,
+			const FW1_RECTF *pLayoutRect,
+			UINT flags
+		);
 	
 	// Internal data
-	protected:
+	private:
 		std::wstring					m_lastError;
 		
 		ID3D11Device					*m_pDevice;

@@ -52,16 +52,13 @@ class CFW1GlyphAtlas : public CFW1Object<IFW1GlyphAtlas> {
 		);
 	
 	// Internal functions
-	protected:
-		CFW1GlyphAtlas(const CFW1GlyphAtlas&);
-		CFW1GlyphAtlas& operator=(const CFW1GlyphAtlas&);
-		
+	private:
 		virtual ~CFW1GlyphAtlas();
 		
 		HRESULT createGlyphSheet(IFW1GlyphSheet **ppGlyphSheet);
 	
 	// Internal data
-	protected:
+	private:
 		ID3D11Device				*m_pDevice;
 		UINT						m_sheetWidth;
 		UINT						m_sheetHeight;

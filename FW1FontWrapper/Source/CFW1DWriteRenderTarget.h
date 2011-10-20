@@ -37,7 +37,7 @@ class CFW1DWriteRenderTarget : public CFW1Object<IFW1DWriteRenderTarget> {
 		);
 	
 	// Internal types
-	protected:
+	private:
 		struct DWGlyphData {
 			FLOAT					offsetX;
 			FLOAT					offsetY;
@@ -48,10 +48,7 @@ class CFW1DWriteRenderTarget : public CFW1Object<IFW1DWriteRenderTarget> {
 		typedef std::map<DWRITE_RENDERING_MODE, IDWriteRenderingParams*> RenderingParamsMap;
 	
 	// Internal functions
-	protected:
-		CFW1DWriteRenderTarget(const CFW1DWriteRenderTarget&);
-		CFW1DWriteRenderTarget& operator=(const CFW1DWriteRenderTarget&);
-		
+	private:
 		virtual ~CFW1DWriteRenderTarget();
 		
 		HRESULT createRenderTarget(IDWriteFactory *pDWriteFactory);
@@ -64,7 +61,7 @@ class CFW1DWriteRenderTarget : public CFW1Object<IFW1DWriteRenderTarget> {
 		);
 	
 	// Internal data
-	protected:
+	private:
 		std::wstring				m_lastError;
 		
 		IDWriteBitmapRenderTarget	*m_pRenderTarget;
