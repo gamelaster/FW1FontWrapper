@@ -1004,7 +1004,7 @@ MIDL_INTERFACE("8004DB2B-B5F9-4420-A6A2-E17E15E4C336") IFW1Factory : public IUnk
 		/// <returns>Standard HRESULT error code.</returns>
 		/// <param name="pDevice">The ID3D11Device that the font-wrapper will be used with.</param>
 		/// <param name="pGlyphAtlas">An IFW1GlyphAtlas that glyph-images will be stored in.</param>
-		/// <param name="pGlyphProvider">An IFW1GlyphProvide that handles fonts and glyphmaps.</param>
+		/// <param name="pGlyphProvider">An IFW1GlyphProvider that handles fonts and glyphmaps.</param>
 		/// <param name="pGlyphVertexDrawer">An IFW1GlyphVertexDrawer that handles drawing glyph-vertices.</param>
 		/// <param name="pGlyphRenderStates">An IFW1GlyphRenderStates that handles all needed context states when drawing glyphs.</param>
 		/// <param name="pDWriteFactory">An IDWriteFactory that is used to create render-targets to draw glyphs with.</param>
