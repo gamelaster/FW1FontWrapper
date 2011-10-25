@@ -50,7 +50,6 @@ class CFW1Factory : public IFW1Factory {
 		);
 		virtual HRESULT STDMETHODCALLTYPE CreateTextRenderer(
 			IFW1GlyphProvider *pGlyphProvider,
-			IFW1TextGeometry *pTextGeometry,
 			IFW1TextRenderer **ppTextRenderer
 		);
 		virtual HRESULT STDMETHODCALLTYPE CreateTextGeometry(

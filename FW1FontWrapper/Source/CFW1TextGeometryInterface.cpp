@@ -27,6 +27,8 @@ HRESULT STDMETHODCALLTYPE CFW1TextGeometry::QueryInterface(REFIID riid, void **p
 void STDMETHODCALLTYPE CFW1TextGeometry::Clear() {
 	m_vertices.clear();
 	m_maxSheetIndex = 0;
+	
+	m_sorted = false;
 }
 
 
@@ -36,6 +38,8 @@ void STDMETHODCALLTYPE CFW1TextGeometry::AddGlyphVertex(const FW1_GLYPHVERTEX *p
 	
 	UINT sheetIndex = pVertex->GlyphIndex >> 16;
 	m_maxSheetIndex = std::max(m_maxSheetIndex, sheetIndex);
+	
+	m_sorted = false;
 }
 
 
@@ -44,30 +48,50 @@ FW1_VERTEXDATA STDMETHODCALLTYPE CFW1TextGeometry::GetGlyphVerticesTemp() {
 	FW1_VERTEXDATA vertexData;
 	
 	if(!m_vertices.empty()) {
+		UINT32 sheetCount = m_maxSheetIndex + 1;
+		
 		// Sort and prepare vertices
-		m_sortedVertices.resize(m_vertices.size());
-		
-		UINT sheetCount = m_maxSheetIndex+1;
-		
-		m_vertexCounts.resize(sheetCount);
-		std::fill(m_vertexCounts.begin(), m_vertexCounts.end(), 0);
-		
-		for(size_t i=0; i < m_vertices.size(); ++i)
-			++(m_vertexCounts[m_vertices[i].GlyphIndex >> 16]);
-		
-		m_vertexStartIndices.resize(sheetCount);
-		m_vertexStartIndices[0] = 0;
-		for(UINT i=1; i < sheetCount; ++i)
-			m_vertexStartIndices[i] = m_vertexStartIndices[i-1] + m_vertexCounts[i-1];
-		
-		for(size_t i=0; i < m_vertices.size(); ++i) {
-			const FW1_GLYPHVERTEX &vertex = m_vertices[i];
-			const UINT sheetIndex = vertex.GlyphIndex >> 16;
+		if(!m_sorted) {
+			m_sortedVertices.resize(m_vertices.size());
+			m_vertexCounts.resize(sheetCount);
+			m_vertexStartIndices.resize(sheetCount);
 			
-			m_sortedVertices[m_vertexStartIndices[sheetIndex]] = vertex;
-			m_sortedVertices[m_vertexStartIndices[sheetIndex]].GlyphIndex &= 0xffff;
+			std::fill(m_vertexCounts.begin(), m_vertexCounts.end(), 0);
 			
-			++(m_vertexStartIndices[sheetIndex]);
+			UINT * const vertexCounts = &m_vertexCounts[0];
+			const FW1_GLYPHVERTEX * const vertices = &m_vertices[0];
+			const UINT32 vertexCount = static_cast<UINT32>(m_vertices.size());
+			
+			for(UINT32 i=0; i < vertexCount; ++i) {
+				UINT32 sheetIndex = vertices[i].GlyphIndex >> 16;
+				
+				++vertexCounts[sheetIndex];
+			}
+			
+			UINT * const vertexStartIndices = &m_vertexStartIndices[0];
+			
+			UINT currentStartIndex = 0;
+			for(UINT32 i=0; i < sheetCount; ++i) {
+				vertexStartIndices[i] = currentStartIndex;
+				
+				currentStartIndex += vertexCounts[i];
+			}
+			
+			FW1_GLYPHVERTEX * const sortedVertices = &m_sortedVertices[0];
+			
+			for(UINT32 i=0; i < vertexCount; ++i) {
+				const FW1_GLYPHVERTEX &vertex = vertices[i];
+				UINT32 sheetIndex = vertex.GlyphIndex >> 16;
+				
+				UINT &vertexIndex = vertexStartIndices[sheetIndex];
+				
+				sortedVertices[vertexIndex] = vertex;
+				sortedVertices[vertexIndex].GlyphIndex &= 0xffff;
+				
+				++vertexIndex;
+			}
+			
+			m_sorted = true;
 		}
 		
 		vertexData.SheetCount = sheetCount;

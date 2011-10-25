@@ -26,6 +26,7 @@ CFW1FontWrapper::CFW1FontWrapper() :
 	m_pDefaultTextFormat(NULL)
 {
 	InitializeCriticalSection(&m_textRenderersCriticalSection);
+	InitializeCriticalSection(&m_textGeometriesCriticalSection);
 }
 
 
@@ -47,9 +48,15 @@ CFW1FontWrapper::~CFW1FontWrapper() {
 		m_textRenderers.pop();
 	}
 	
+	while(!m_textGeometries.empty()) {
+		m_textGeometries.top()->Release();
+		m_textGeometries.pop();
+	}
+	
 	SAFE_RELEASE(m_pDefaultTextFormat);
 	
 	DeleteCriticalSection(&m_textRenderersCriticalSection);
+	DeleteCriticalSection(&m_textGeometriesCriticalSection);
 }
 
 

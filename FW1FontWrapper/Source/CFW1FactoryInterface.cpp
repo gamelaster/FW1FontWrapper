@@ -315,14 +315,13 @@ HRESULT STDMETHODCALLTYPE CFW1Factory::CreateGlyphRenderStates(
 // Create DWrite text renderer
 HRESULT STDMETHODCALLTYPE CFW1Factory::CreateTextRenderer(
 	IFW1GlyphProvider *pGlyphProvider,
-	IFW1TextGeometry *pTextGeometry,
 	IFW1TextRenderer **ppTextRenderer
 ) {
 	if(ppTextRenderer == NULL)
 		return E_INVALIDARG;
 	
 	CFW1TextRenderer *pTextRenderer = new CFW1TextRenderer;
-	HRESULT hResult = pTextRenderer->initTextRenderer(this, pGlyphProvider, pTextGeometry);
+	HRESULT hResult = pTextRenderer->initTextRenderer(this, pGlyphProvider);
 	if(FAILED(hResult)) {
 		pTextRenderer->Release();
 		setErrorString(L"initTextRenderer failed");

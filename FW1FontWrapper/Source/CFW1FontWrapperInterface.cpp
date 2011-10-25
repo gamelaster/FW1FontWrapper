@@ -133,55 +133,45 @@ void STDMETHODCALLTYPE CFW1FontWrapper::DrawTextLayout(
 	const FLOAT *pTransformMatrix,
 	UINT Flags
 ) {
-	// Get a text renderer
-	IFW1TextRenderer *pTextRenderer = NULL;
+	IFW1TextGeometry *pTextGeometry = NULL;
 	
-	EnterCriticalSection(&m_textRenderersCriticalSection);
-	if(!m_textRenderers.empty()) {
-		pTextRenderer = m_textRenderers.top();
-		m_textRenderers.pop();
-	}
-	LeaveCriticalSection(&m_textRenderersCriticalSection);
-	
-	if(pTextRenderer == NULL) {
-		IFW1TextGeometry *pTextGeometry;
-		HRESULT hResult = m_pFW1Factory->CreateTextGeometry(&pTextGeometry);
-		if(FAILED(hResult)) {
+	// If needed, get a text geometry to store vertices in
+	if((Flags & FW1_ANALYZEONLY) == 0 && (Flags & FW1_CACHEONLY) == 0) {
+		EnterCriticalSection(&m_textGeometriesCriticalSection);
+		if(!m_textGeometries.empty()) {
+			pTextGeometry = m_textGeometries.top();
+			m_textGeometries.pop();
 		}
-		else {
-			IFW1TextRenderer *pNewTextRenderer;
-			hResult = m_pFW1Factory->CreateTextRenderer(m_pGlyphProvider, pTextGeometry, &pNewTextRenderer);
+		LeaveCriticalSection(&m_textGeometriesCriticalSection);
+		
+		if(pTextGeometry == NULL) {
+			IFW1TextGeometry *pNewTextGeometry;
+			HRESULT hResult = m_pFW1Factory->CreateTextGeometry(&pNewTextGeometry);
 			if(FAILED(hResult)) {
 			}
 			else {
-				pTextRenderer = pNewTextRenderer;
-			}
-			
-			pTextGeometry->Release();
-		}
-	}
-	
-	// Draw
-	if(pTextRenderer != NULL) {
-		HRESULT hResult = pTextRenderer->DrawTextLayout(pTextLayout, OriginX, OriginY, Color, Flags);
-		if(SUCCEEDED(hResult) && (Flags & FW1_ANALYZEONLY) == 0) {
-			// Flush the glyph atlas in case any new glyphs were added
-			if((Flags & FW1_NOFLUSH) == 0)
-				m_pGlyphAtlas->Flush(pContext);
-			
-			// Draw the vertices
-			if((Flags & FW1_CACHEONLY) == 0) {
-				IFW1TextGeometry *pTextGeometry;
-				pTextRenderer->GetTextGeometry(&pTextGeometry);
-				DrawGeometry(pContext, pTextGeometry, pClipRect, pTransformMatrix, Flags);
-				pTextGeometry->Release();
+				pTextGeometry = pNewTextGeometry;
 			}
 		}
 		
-		// Keep the text renderer for future use
-		EnterCriticalSection(&m_textRenderersCriticalSection);
-		m_textRenderers.push(pTextRenderer);
-		LeaveCriticalSection(&m_textRenderersCriticalSection);
+		if(pTextGeometry != NULL)
+			pTextGeometry->Clear();
+	}
+	
+	// Draw
+	AnalyzeTextLayout(pContext, pTextLayout, OriginX, OriginY, Color, Flags, pTextGeometry);
+	if((Flags & FW1_ANALYZEONLY) == 0) {
+		// Draw the vertices
+		if((Flags & FW1_CACHEONLY) == 0) {
+			DrawGeometry(pContext, pTextGeometry, pClipRect, pTransformMatrix, Flags);
+		}
+	}
+	
+	if(pTextGeometry != NULL) {
+		// Keep the text geometry for future use
+		EnterCriticalSection(&m_textGeometriesCriticalSection);
+		m_textGeometries.push(pTextGeometry);
+		LeaveCriticalSection(&m_textGeometriesCriticalSection);
 	}
 }
 
@@ -282,6 +272,82 @@ FW1_RECTF STDMETHODCALLTYPE CFW1FontWrapper::MeasureString(
 	}
 	
 	return stringRect;
+}
+
+
+// Create geometry from a string
+void STDMETHODCALLTYPE CFW1FontWrapper::AnalyzeString(
+	ID3D11DeviceContext *pContext,
+	const WCHAR *pszString,
+	const WCHAR *pszFontFamily,
+	FLOAT FontSize,
+	const FW1_RECTF *pLayoutRect,
+	UINT32 Color,
+	UINT Flags,
+	IFW1TextGeometry *pTextGeometry
+) {
+	IDWriteTextLayout *pTextLayout = createTextLayout(pszString, pszFontFamily, FontSize, pLayoutRect, Flags);
+	if(pTextLayout != NULL) {
+		AnalyzeTextLayout(
+			pContext,
+			pTextLayout,
+			pLayoutRect->Left,
+			pLayoutRect->Top,
+			Color,
+			Flags,
+			pTextGeometry
+		);
+		
+		pTextLayout->Release();
+	}
+}
+
+
+// Create geometry from a text layout
+void STDMETHODCALLTYPE CFW1FontWrapper::AnalyzeTextLayout(
+	ID3D11DeviceContext *pContext,
+	IDWriteTextLayout *pTextLayout,
+	FLOAT OriginX,
+	FLOAT OriginY,
+	UINT32 Color,
+	UINT Flags,
+	IFW1TextGeometry *pTextGeometry
+) {
+	// Get a text renderer
+	IFW1TextRenderer *pTextRenderer = NULL;
+	
+	EnterCriticalSection(&m_textRenderersCriticalSection);
+	if(!m_textRenderers.empty()) {
+		pTextRenderer = m_textRenderers.top();
+		m_textRenderers.pop();
+	}
+	LeaveCriticalSection(&m_textRenderersCriticalSection);
+	
+	if(pTextRenderer == NULL) {
+		IFW1TextRenderer *pNewTextRenderer;
+		HRESULT hResult = m_pFW1Factory->CreateTextRenderer(m_pGlyphProvider, &pNewTextRenderer);
+		if(FAILED(hResult)) {
+		}
+		else {
+			pTextRenderer = pNewTextRenderer;
+		}
+	}
+	
+	// Create geometry
+	if(pTextRenderer != NULL) {
+		HRESULT hResult = pTextRenderer->DrawTextLayout(pTextLayout, OriginX, OriginY, Color, Flags, pTextGeometry);
+		if(FAILED(hResult)) {
+		}
+		
+		// Flush the glyph atlas in case any new glyphs were added
+		if((Flags & FW1_NOFLUSH) == 0)
+			m_pGlyphAtlas->Flush(pContext);
+		
+		// Keep the text renderer for future use
+		EnterCriticalSection(&m_textRenderersCriticalSection);
+		m_textRenderers.push(pTextRenderer);
+		LeaveCriticalSection(&m_textRenderersCriticalSection);
+	}
 }
 
 

@@ -83,6 +83,27 @@ class CFW1FontWrapper : public CFW1Object<IFW1FontWrapper> {
 			UINT Flags
 		);
 		
+		virtual void STDMETHODCALLTYPE AnalyzeString(
+			ID3D11DeviceContext *pContext,
+			const WCHAR *pszString,
+			const WCHAR *pszFontFamily,
+			FLOAT FontSize,
+			const FW1_RECTF *pLayoutRect,
+			UINT32 Color,
+			UINT Flags,
+			IFW1TextGeometry *pTextGeometry
+		);
+		
+		virtual void STDMETHODCALLTYPE AnalyzeTextLayout(
+			ID3D11DeviceContext *pContext,
+			IDWriteTextLayout *pTextLayout,
+			FLOAT OriginX,
+			FLOAT OriginY,
+			UINT32 Color,
+			UINT Flags,
+			IFW1TextGeometry *pTextGeometry
+		);
+		
 		virtual void STDMETHODCALLTYPE DrawGeometry(
 			ID3D11DeviceContext *pContext,
 			IFW1TextGeometry *pGeometry,
@@ -136,6 +157,8 @@ class CFW1FontWrapper : public CFW1Object<IFW1FontWrapper> {
 		
 		CRITICAL_SECTION				m_textRenderersCriticalSection;
 		std::stack<IFW1TextRenderer*>	m_textRenderers;
+		CRITICAL_SECTION				m_textGeometriesCriticalSection;
+		std::stack<IFW1TextGeometry*>	m_textGeometries;
 		
 		bool							m_defaultTextInited;
 		IDWriteTextFormat				*m_pDefaultTextFormat;

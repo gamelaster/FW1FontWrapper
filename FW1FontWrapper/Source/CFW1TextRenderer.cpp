@@ -13,7 +13,6 @@ namespace FW1FontWrapper {
 // Construct
 CFW1TextRenderer::CFW1TextRenderer() :
 	m_pGlyphProvider(NULL),
-	m_pTextGeometry(NULL),
 	
 	m_currentFlags(0),
 	m_currentColor(0xff000000),
@@ -30,7 +29,6 @@ CFW1TextRenderer::CFW1TextRenderer() :
 // Destruct
 CFW1TextRenderer::~CFW1TextRenderer() {
 	SAFE_RELEASE(m_pGlyphProvider);
-	SAFE_RELEASE(m_pTextGeometry);
 	
 	delete m_pDWriteTextRendererProxy;
 }
@@ -39,20 +37,17 @@ CFW1TextRenderer::~CFW1TextRenderer() {
 // Init
 HRESULT CFW1TextRenderer::initTextRenderer(
 	IFW1Factory *pFW1Factory,
-	IFW1GlyphProvider *pGlyphProvider,
-	IFW1TextGeometry *pTextGeometry
+	IFW1GlyphProvider *pGlyphProvider
 ) {
 	HRESULT hResult = initBaseObject(pFW1Factory);
 	if(FAILED(hResult))
 		return hResult;
 	
-	if(pGlyphProvider == NULL || pTextGeometry == NULL)
+	if(pGlyphProvider == NULL)
 		return E_INVALIDARG;
 	
 	pGlyphProvider->AddRef();
 	m_pGlyphProvider = pGlyphProvider;
-	pTextGeometry->AddRef();
-	m_pTextGeometry = pTextGeometry;
 	
 	m_pDWriteTextRendererProxy = new CDWriteTextRendererProxy(this);
 	

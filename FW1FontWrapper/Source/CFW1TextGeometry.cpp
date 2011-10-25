@@ -10,7 +10,8 @@ namespace FW1FontWrapper {
 
 // Construct
 CFW1TextGeometry::CFW1TextGeometry() :
-	m_maxSheetIndex(0)
+	m_maxSheetIndex(0),
+	m_sorted(false)
 {
 }
 

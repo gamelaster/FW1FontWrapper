@@ -86,7 +86,7 @@ enum FW1_TEXT_FLAG {
 	FW1_ANALYZEONLY = 0x8000,
 	
 	/// <summary>Don't use.</summary>
-	FW1_DF_UNUSED = 0xffffffff
+	FW1_UNUSED = 0xffffffff
 };
 
 /// <summary>Coordinates for a single glyph in the atlas.</summary>
@@ -604,7 +604,7 @@ MIDL_INTERFACE("A0EA03A0-441D-49BE-9D2C-4AE27BB7A327") IFW1ColorRGBA : public IF
 	) = 0;
 };
 
-/// <summary>A dynamic list of vertices.</summary>
+/// <summary>A dynamic list of vertices. Note that this object is a simple array without synchronization and not safe to use simultaneously on more than one thread.</summary>
 /// <remarks>When rendering a string, a vertex is inserted into an IFW1TextGeometry object for each glyph.
 /// The vertices in an IFW1TextGeometry can be drawn by the IFW1FontWrapper::DrawGeometry method.<br/>
 /// A pointer to the actual vertices can be obtained with the IFW1TextGeometry::GetGlyphVerticesTemp method.</remarks>
@@ -639,16 +639,6 @@ MIDL_INTERFACE("51E05736-6AFF-44A8-9745-77605C99E8F2") IFW1TextGeometry : public
 /// <summary>A text-renderer converts DirectWrite text layouts into glyph-vertices.</summary>
 /// <remarks></remarks>
 MIDL_INTERFACE("51E05736-6AFF-44A8-9745-77605C99E8F2") IFW1TextRenderer : public IFW1Object {
-	/// <summary>Get the IFW1TextGeometry used by a text-renderer to output vertices to.</summary>
-	/// <remarks>Neither IFW1TextRenderer nor IFW1TextGeometry methods are thread safe.
-	/// The IFW1TextGeometry object should not be used simultaneously with the text-renderer.<br/>
-	/// This method is not thread safe.</remarks>
-	/// <returns>No return value.</returns>
-	/// <param name="ppTextGeometry">Address of a pointer to an IFW1TextGeometry.</param>
-	virtual void STDMETHODCALLTYPE GetTextGeometry(
-		__out IFW1TextGeometry **ppTextGeometry
-	) = 0;
-	
 	/// <summary>Get the IFW1GlyphProvider used by a text-renderer.</summary>
 	/// <remarks>The glyph provider is used internally to get the atlas IDs for any glyphs needed when drawing a text layout.</remarks>
 	/// <returns>Standard HRESULT error code.</returns>
@@ -658,8 +648,7 @@ MIDL_INTERFACE("51E05736-6AFF-44A8-9745-77605C99E8F2") IFW1TextRenderer : public
 	) = 0;
 	
 	/// <summary>Convert a text layout to vertices.</summary>
-	/// <remarks>This method internally calls the IDWriteTextLayout::Draw method, and handles callbacks to convert the formatted text into vertices, which will be stored in the internal IFW1TextGeometry object.
-	/// Use IFW1TextRenderer::GetTextGeometry to get the geometry after a DrawTextLayout call has successfully completed.<br/>
+	/// <remarks>This method internally calls the IDWriteTextLayout::Draw method, and handles callbacks to convert the formatted text into vertices, which will be stored in the passed IFW1TextGeometry object.
 	/// This method is not thread-safe.</remarks>
 	/// <returns>Standard HRESULT error code.</returns>
 	/// <param name="pTextLayout">A DirectWrite text layout. See the DirectWrite documentation.</param>
@@ -672,12 +661,14 @@ MIDL_INTERFACE("51E05736-6AFF-44A8-9745-77605C99E8F2") IFW1TextRenderer : public
 	/// FW1_CACHEONLY - All glyphs are queried from the glyph-provider and cached in the glyph-atlas, but no geometry is produced.<br/>
 	/// FW1_ANALYZEONLY - The text-layout is analyzed and glyph-maps are prepared, but the glyphs in the string are not cached and no geometry is produced.<br/>
 	/// </param>
+	/// <param name="pTextGeometry">An IFW1TextGeometry object that the output vertices will be appended to.</param>
 	virtual HRESULT STDMETHODCALLTYPE DrawTextLayout(
 		__in IDWriteTextLayout *pTextLayout,
 		__in FLOAT OriginX,
 		__in FLOAT OriginY,
 		__in UINT32 Color,
-		__in UINT Flags
+		__in UINT Flags,
+		__in IFW1TextGeometry *pTextGeometry
 	) = 0;
 };
 
@@ -839,7 +830,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="OriginX">The X origin of the text in the layout.</param>
 	/// <param name="OriginY">The Y origin of the text in the layout.</param>
 	/// <param name="Color">The default color of the text, as 0xAaBbGgRr.</param>
-	/// <param name="pClipRect">A pointer to a rectangle to clip the text to.</param>
+	/// <param name="pClipRect">A pointer to a rectangle to clip the text to if also using the FW1_CLIPRECT flag, or NULL to not clip.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by.</param>
 	/// <param name="Flags">See FW1_TEXT_FLAG. The alignment and word-wrapping flags have no meaning when drawing a preconstructed text layout.</param>
 	virtual void STDMETHODCALLTYPE DrawTextLayout(
@@ -904,7 +895,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	/// <param name="FontSize">The size of the font.</param>
 	/// <param name="pLayoutRect">A pointer to a rectangle to format the text in.</param>
 	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
-	/// <param name="pClipRect">A pointer to a rectangle to clip the text to, or NULL to not clip.</param>
+	/// <param name="pClipRect">A pointer to a rectangle to clip the text to if also using the FW1_CLIPRECT flag, or NULL to not clip.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by, or NULL to draw in screen-space.</param>
 	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawString(
@@ -935,12 +926,57 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 		__in UINT Flags
 	) = 0;
 	
+	/// <summary>Analyze a string and generate geometry to draw it.</summary>
+	/// <remarks>pTextGeometry can be NULL if the FW1_ANALYZEONLY or FW1_CACHEONLY flags are specified, as no actual geometry will be generated.
+	/// pContext can be NULL if the FW1_NOFLUSH flag is used, as any new glyphs will not be flushed to the device buffers.</remarks>
+	/// <returns>No return value.</returns>
+	/// <param name="pContext">A device context to use to update device buffers when new glyphs are added to the glyph-atlas.</param>
+	/// <param name="pszString">The NULL-terminated string to create geometry from.</param>
+	/// <param name="pszFontFamily">The font family to use, such as Arial or Courier New.</param>
+	/// <param name="FontSize">The size of the font.</param>
+	/// <param name="pLayoutRect">A pointer to a rectangle to format the text in.</param>
+	/// <param name="Color">The color of the text, as 0xAaBbGgRr.</param>
+	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
+	/// <param name="pTextGeometry">An IFW1TextGeometry object that the output vertices will be appended to.</param>
+	virtual void STDMETHODCALLTYPE AnalyzeString(
+		__in ID3D11DeviceContext *pContext,
+		__in const WCHAR *pszString,
+		__in const WCHAR *pszFontFamily,
+		__in FLOAT FontSize,
+		__in const FW1_RECTF *pLayoutRect,
+		__in UINT32 Color,
+		__in UINT Flags,
+		__in IFW1TextGeometry *pTextGeometry
+	) = 0;
+	
+	/// <summary>Analyze a text layout and generate geometry to draw it.</summary>
+	/// <remarks>Consult the DirectWrite documentation for details on how to construct a text-layout.
+	/// pTextGeometry can be NULL if the FW1_ANALYZEONLY or FW1_CACHEONLY flags are specified, as no actual geometry will be generated.
+	/// pContext can be NULL if the FW1_NOFLUSH flag is used, as any new glyphs will not be flushed to the device buffers.</remarks>
+	/// <returns>No return value.</returns>
+	/// <param name="pContext">A device context to use to update device buffers when new glyphs are added to the glyph-atlas.</param>
+	/// <param name="pTextLayout">The DirectWrite text layout to create geometry from.</param>
+	/// <param name="OriginX">The X origin of the text in the layout.</param>
+	/// <param name="OriginY">The Y origin of the text in the layout.</param>
+	/// <param name="Color">The default color of the text, as 0xAaBbGgRr.</param>
+	/// <param name="Flags">See FW1_TEXT_FLAG. The alignment and word-wrapping flags have no meaning when using a preconstructed text layout.</param>
+	/// <param name="pTextGeometry">An IFW1TextGeometry object that the output vertices will be appended to.</param>
+	virtual void STDMETHODCALLTYPE AnalyzeTextLayout(
+		__in ID3D11DeviceContext *pContext,
+		__in IDWriteTextLayout *pTextLayout,
+		__in FLOAT OriginX,
+		__in FLOAT OriginY,
+		__in UINT32 Color,
+		__in UINT Flags,
+		__in IFW1TextGeometry *pTextGeometry
+	) = 0;
+	
 	/// <summary>Draw geometry.</summary>
 	/// <remarks></remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to draw on.</param>
 	/// <param name="pGeometry">The geometry to draw.</param>
-	/// <param name="pClipRect">A pointer to a rectangle to clip the text to, or NULL to not clip.</param>
+	/// <param name="pClipRect">A pointer to a rectangle to clip the text to if also using the FW1_CLIPRECT flag, or NULL to not clip. This rect is in text-space, and clipping is performed prior to any transformation.</param>
 	/// <param name="pTransformMatrix">An array of 16 floats, representing a matrix which the text will be transformed by, or NULL to draw in screen-space.</param>
 	/// <param name="Flags">See the FW1_TEXT_FLAG enumeration.</param>
 	virtual void STDMETHODCALLTYPE DrawGeometry(
@@ -953,7 +989,7 @@ MIDL_INTERFACE("83347A5C-B0B1-460e-A35C-427E8B85F9F4") IFW1FontWrapper : public 
 	
 	/// <summary>Flush any new glyphs to GPU resources.</summary>
 	/// <remarks>This method calls IFW1GlyphAtlas::Flush to flush any newly cached glyphs.
-	/// This method is only needed if drawing text using the FW1_NOFLUSH flag and delaying flushing data to the device. See IFW1GlyphAtlas::Flush.</remarks>
+	/// This method is only needed if drawing text using the FW1_NOFLUSH flag and delaying flushing data to the device, as otherwise it is implicitly called whenever a string is drawn. See IFW1GlyphAtlas::Flush.</remarks>
 	/// <returns>No return value.</returns>
 	/// <param name="pContext">The device context to use to update device resources.</param>
 	virtual void STDMETHODCALLTYPE Flush(
@@ -1052,11 +1088,9 @@ MIDL_INTERFACE("8004DB2B-B5F9-4420-A6A2-E17E15E4C336") IFW1Factory : public IUnk
 		/// <remarks></remarks>
 		/// <returns>Standard HRESULT error code.</returns>
 		/// <param name="pGlyphProvider">The IFW1GlyphProvider that provides glyph-information for the text-renderer.</param>
-		/// <param name="pTextGeometry">An IFW1TextGeometry that the text-renderer will use to store vertices in.</param>
 		/// <param name="ppTextRenderer">Address of a pointer to a IFW1TextRenderer.</param>
 		virtual HRESULT STDMETHODCALLTYPE CreateTextRenderer(
 			__in IFW1GlyphProvider *pGlyphProvider,
-			__in IFW1TextGeometry *pTextGeometry,
 			__out IFW1TextRenderer **ppTextRenderer
 		) = 0;
 		

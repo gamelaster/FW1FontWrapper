@@ -39,6 +39,7 @@ class CFW1TextGeometry : public CFW1Object<IFW1TextGeometry> {
 		UINT							m_maxSheetIndex;
 		std::vector<UINT>				m_vertexCounts;
 		std::vector<UINT>				m_vertexStartIndices;
+		bool							m_sorted;
 };
 
 
