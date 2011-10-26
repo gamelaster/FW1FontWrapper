@@ -160,11 +160,8 @@ void STDMETHODCALLTYPE CFW1FontWrapper::DrawTextLayout(
 	
 	// Draw
 	AnalyzeTextLayout(pContext, pTextLayout, OriginX, OriginY, Color, Flags, pTextGeometry);
-	if((Flags & FW1_ANALYZEONLY) == 0) {
-		// Draw the vertices
-		if((Flags & FW1_CACHEONLY) == 0) {
-			DrawGeometry(pContext, pTextGeometry, pClipRect, pTransformMatrix, Flags);
-		}
+	if((Flags & FW1_ANALYZEONLY) == 0 && (Flags & FW1_CACHEONLY) == 0) {
+		DrawGeometry(pContext, pTextGeometry, pClipRect, pTransformMatrix, Flags);
 	}
 	
 	if(pTextGeometry != NULL) {
